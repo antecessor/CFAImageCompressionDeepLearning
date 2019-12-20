@@ -6,7 +6,7 @@ from keras.layers import Dense, Input
 from keras.layers import Conv2D, Flatten, Lambda
 from keras.layers import Reshape, Conv2DTranspose
 from keras.models import Model
-from keras.datasets import mnist
+from keras.datasets import mnist, cifar10
 from keras.losses import mse, binary_crossentropy
 from keras.utils import plot_model
 from keras import backend as K
@@ -16,10 +16,12 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-
 # reparameterization trick
 # instead of sampling from Q(z|X), sample eps = N(0,I)
 # then z = z_mean + sqrt(var)*eps
+from CFAUtils import RGB2CFAUtils
+
+
 def sampling(args):
     """Reparameterization trick by sampling fr an isotropic unit Gaussian.
     # Arguments:
@@ -80,7 +82,7 @@ def plot_results(models,
             x_decoded = decoder.predict(z_sample)
             digit = x_decoded[0].reshape(digit_size, digit_size)
             figure[i * digit_size: (i + 1) * digit_size,
-                   j * digit_size: (j + 1) * digit_size] = digit
+            j * digit_size: (j + 1) * digit_size] = digit
 
     plt.figure(figsize=(10, 10))
     start_range = digit_size // 2
@@ -98,7 +100,25 @@ def plot_results(models,
 
 
 # MNIST dataset
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+# Convert to CFA
+rgb2CFAUtils = RGB2CFAUtils()
+n_train, h, w, c = x_train.shape
+n_test, h, w, c = x_test.shape
+
+x_train_cfa = np.zeros([n_train, h, w, 1])
+for i in range(n_train):
+    x_train_cfa[i, :, :, 0] = rgb2CFAUtils.rgb2CFA(x_train[i, :, :, :])[0]
+    print("converting image {0} to CFA: Training".format(i))
+
+x_test_cfa = np.zeros([n_train, h, w, 1])
+for i in range(n_test):
+    x_test_cfa[i, :, :, 0] = rgb2CFAUtils.rgb2CFA(x_test[i, :, :, :])[0]
+    print("converting image {0} to CFA: Test".format(i))
+
+x_train = x_train_cfa
+x_test = x_test_cfa
 
 image_size = x_train.shape[1]
 x_train = np.reshape(x_train, [-1, image_size, image_size, 1])
@@ -207,6 +227,6 @@ if __name__ == '__main__':
                 epochs=epochs,
                 batch_size=batch_size,
                 validation_data=(x_test, None))
-        vae.save_weights('vae_cnn_mnist.h5')
+        vae.save_weights('vae_cnn_compression_CFA.h5')
 
     plot_results(models, data, batch_size=batch_size, model_name="vae_cnn")
