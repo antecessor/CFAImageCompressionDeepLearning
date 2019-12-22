@@ -1,12 +1,11 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-import math
-
 from keras.datasets import cifar10
 import numpy as np
 import argparse
+
+from ImageUtils import compute_psnr
 from VAENetwork import VAENetwork
 from CFAUtils import RGB2CFAUtils
 import matplotlib.pyplot as plt
@@ -14,13 +13,7 @@ import matplotlib.pyplot as plt
 modelWeightsName = "vae_cnn_compression_CFA.h5"
 
 
-def compute_psnr(img1, img2):
-    img1 = img1.astype(np.float64) / 255.
-    img2 = img2.astype(np.float64) / 255.
-    mse = np.mean((img1 - img2) ** 2)
-    if mse == 0:
-        return "Same Image"
-    return 10 * math.log10(1. / mse)
+
 
 
 def plotSamples():
@@ -36,7 +29,7 @@ def plotSamples():
     for i, yi in enumerate(grid_y):
         for j, xi in enumerate(grid_x):
             decodedImage = network.predictDecoder(np.asarray([compressedLatentSpace[index]]))
-            digit = decodedImage.reshape(image_size, image_size)
+            digit = np.round(decodedImage.reshape(image_size, image_size) * 255)
             psnr.append(compute_psnr(digit, x_train[index]))
             figure[i * image_size: (i + 1) * image_size,
             j * image_size: (j + 1) * image_size] = digit
