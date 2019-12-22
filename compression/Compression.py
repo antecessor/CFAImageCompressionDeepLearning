@@ -1,7 +1,8 @@
+import sys
+
 import numpy as np
 import os
 import lz4.frame
-
 
 compressPath = "../compress/"
 
@@ -9,8 +10,11 @@ compressPath = "../compress/"
 def applyLZWCompressionOnImage(image):
     if not os.path.exists(compressPath):
         os.mkdir(compressPath)
-
-    return lz4.frame.compress(image)
+    compressedImage = lz4.frame.compress(image)
+    originalSize = sys.getsizeof(image)
+    compressedSize = sys.getsizeof(compressedImage)
+    compressionRatio = originalSize / compressedSize
+    return compressedImage, compressionRatio
 
 
 def decompress(compressed, shapes):

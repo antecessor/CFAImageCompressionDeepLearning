@@ -11,13 +11,9 @@ class TestCompress(TestCase):
         image = cv2.imread('./../data/rgb.jpg')
 
         image = np.uint8(image * 255)
-        compressed = applyLZWCompressionOnImage(image)
-        compressedSize = sys.getsizeof(compressed)
-
+        compressed, compressionRatio = applyLZWCompressionOnImage(image)
         decompressedImage = decompress(compressed, image.shape)
-        originalSize = sys.getsizeof(image)
-
-        print("compressed ratio:", originalSize / compressedSize)
+        print("compressed ratio:", compressionRatio)
         psnr = compute_psnr(decompressedImage, image)
         print("PSNR:", psnr)
 

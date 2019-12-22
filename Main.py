@@ -10,10 +10,21 @@ from VAENetwork import VAENetwork
 from CFAUtils import RGB2CFAUtils
 import matplotlib.pyplot as plt
 
+from compression.Compression import applyLZWCompressionOnImage
+
 modelWeightsName = "vae_cnn_compression_CFA.h5"
 
 
-
+def calculateCompressionRatioForAllDecodedImages(images):
+    n, h, w, c = images.shape
+    compressedLatentSpaces = network.predictEncoder(images)
+    compressionRatios = []
+    for i in range(n):
+        decodedImage = network.predictDecoder(np.asarray([compressedLatentSpaces[i]]))
+        error = images[i] - decodedImage
+        _, compressionRatio = applyLZWCompressionOnImage(error)
+        compressionRatios.append(compressionRatio)
+    return compressionRatios
 
 
 def plotSamples():
@@ -47,7 +58,7 @@ def plotSamples():
     plt.ylabel("z[1]")
     plt.imshow(figure, cmap='Greys_r')
     plt.show()
-    print(psnr)
+    # print(psnr)
 
 
 def loadData():
@@ -91,3 +102,5 @@ if __name__ == '__main__':
     network.designNetwork()
     network.trainOrGetTrained(x_train, x_test, args.mse, modelWeightsName)
     plotSamples()
+    compressionRatios = calculateCompressionRatioForAllDecodedImages(x_train)
+    print(compressionRatios)
