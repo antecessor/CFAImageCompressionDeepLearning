@@ -14,7 +14,7 @@ def applyLZWCompressionOnImage(image):
     originalSize = sys.getsizeof(image)
     compressedSize = sys.getsizeof(compressedImage)
     compressionRatio = originalSize / compressedSize
-    return compressedImage, compressionRatio
+    return compressedImage, compressionRatio,compressedSize,originalSize
 
 
 def decompress(compressed, shapes):
